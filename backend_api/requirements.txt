@@ -1,0 +1,12 @@
+fastapi[standard]
+uvicorn
+pydantic
+pytest
+httpx
+pydantic-settings
+redis
+aio-pika
+pymongo
+psycopg2-binary
+sqlalchemy
+requests

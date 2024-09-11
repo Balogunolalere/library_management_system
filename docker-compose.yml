@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  frontend_api:
+    build: ./frontend_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      frontend_db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://frontend_user:frontend_password@frontend_db/frontend_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
+
+  backend_api:
+    build: ./backend_api
+    ports:
+      - "8001:8001"
+    depends_on:
+      backend_db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://backend_user:backend_password@backend_db/backend_db
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq/
+
+  frontend_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: frontend_user
+      POSTGRES_PASSWORD: frontend_password
+      POSTGRES_DB: frontend_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U frontend_user -d frontend_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend_db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: backend_user
+      POSTGRES_PASSWORD: backend_password
+      POSTGRES_DB: backend_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U backend_user -d backend_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
